@@ -1,10 +1,10 @@
 metadata:
-  last_updated: '2026-07-27'
+  last_updated: '2026-08-24'
 papers:
   7pOfih0AAAAJ:2osOgNQ5qMEC:
-    citations: 17
+    citations: 19
     title: 'FeelAnyForce: Estimating contact force feedback from tactile sensation for vision-based tactile sensors'
-    year: '2024'
+    year: '2025'
   7pOfih0AAAAJ:9yKSN-GCB0IC:
     citations: 14
     title: Sim2real bilevel adaptation for object surface classification using vision-based tactile sensors
@@ -18,8 +18,8 @@ papers:
     title: Bayesian Active Object Recognition and 6D Pose Estimation from Multimodal Contact Sensing
     year: '2026'
   7pOfih0AAAAJ:UeHWp8X0CEIC:
-    citations: 8
-    title: 'Sim2Surf: A Sim2Real Surface Classifier for Vision-Based Tactile Sensors With a Bilevel Adaptation Pipeline'
+    citations: 10
+    title: 'Sim2surf: A sim2real surface classifier for vision-based tactile sensors with a bilevel adaptation pipeline'
     year: '2025'
   7pOfih0AAAAJ:Y0pCki6q_DkC:
     citations: 0
