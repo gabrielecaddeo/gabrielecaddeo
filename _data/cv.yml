@@ -82,7 +82,11 @@ cv:
 
     Publications:
       - title: "Temporal Tactile Encoding and Compliance for Intent-Aware Robot-to-Human Bimanual Handover"
-        status: Under review
+        venue: Humanoids 2026
+        year: 2026
+      - title: "Seeing Through the Grasp: Recursive Hand-Conditioned Flow for Streaming Object Reconstruction"
+        venue: I-RIM 3D 2026 (abstract), Best Abstract Award
+        year: 2026
       - title: "Physically Grounded 3D Generative Reconstruction under Hand Occlusion using Proprioception and Multi-Contact Touch"
         venue: ECCV 2026 (oral)
         year: 2026
