@@ -36,5 +36,5 @@ Alongside my research, I am also interested in supporting the robotics community
 
 ## Latest publication
 
-- **[Physically Grounded 3D Generative Reconstruction under Hand Occlusion using Proprioception and Multi-Contact Touch]({{ "/publications/" | relative_url }})** — Oral ECCV 2026.
+- **[Temporal Tactile Encoding and Compliance for Intent-Aware Robot-to-Human Bimanual Handover]({{ "/publications/" | relative_url }})** — IEEE-RAS Humanoids 2026.
 - See the full list of publications, abstracts, BibTeX citations, and links on the [publications page]({{ "/publications/" | relative_url }}).
