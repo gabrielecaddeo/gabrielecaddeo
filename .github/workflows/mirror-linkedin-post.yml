@@ -1,0 +1,102 @@
+name: Mirror a LinkedIn post to the blog
+
+# Paste the URL of one of your LinkedIn posts (Actions tab -> this workflow ->
+# "Run workflow", or the GitHub mobile app) and it is added to _posts/ as a blog
+# entry that redirects to the original post, then the site is redeployed.
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "LinkedIn post URL (from the post's ... menu -> Copy link to post)"
+        required: true
+        type: string
+      title:
+        description: "Title shown on the blog"
+        required: true
+        type: string
+      description:
+        description: "One-sentence summary shown under the title in the blog list"
+        required: false
+        type: string
+      tags:
+        description: "Extra tags, comma separated (linkedin is always added)"
+        required: false
+        type: string
+        default: "robotics"
+      date:
+        description: "Post date, YYYY-MM-DD or YYYY-MM-DD HH:MM (default: now, Europe/Rome)"
+        required: false
+        type: string
+      body:
+        description: "Body text of the blog entry"
+        required: false
+        type: string
+        default: "Read the full post on LinkedIn."
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Create the post
+        id: create
+        env:
+          POST_URL: ${{ inputs.url }}
+          POST_TITLE: ${{ inputs.title }}
+          POST_DESCRIPTION: ${{ inputs.description }}
+          POST_TAGS: ${{ inputs.tags }}
+          POST_DATE: ${{ inputs.date }}
+          POST_BODY: ${{ inputs.body }}
+        run: |
+          path=$(python bin/new_linkedin_post.py \
+            --url "$POST_URL" \
+            --title "$POST_TITLE" \
+            --description "$POST_DESCRIPTION" \
+            --tags "$POST_TAGS" \
+            --date "$POST_DATE" \
+            --body "$POST_BODY")
+          echo "path=$path" >> $GITHUB_OUTPUT
+
+      - name: Format the post with prettier
+        run: npx --yes prettier@3 --no-config --print-width 150 --write "${{ steps.create.outputs.path }}"
+
+      - name: Show the post in the run summary
+        run: |
+          {
+            echo "### Mirrored LinkedIn post"
+            echo ""
+            echo "\`${{ steps.create.outputs.path }}\`"
+            echo ""
+            echo '```markdown'
+            cat "${{ steps.create.outputs.path }}"
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Commit and push
+        env:
+          POST_TITLE: ${{ inputs.title }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add "${{ steps.create.outputs.path }}"
+          git commit -m "Mirror LinkedIn post: $POST_TITLE"
+          git push
+
+      - name: Trigger the deploy workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yml --ref main
