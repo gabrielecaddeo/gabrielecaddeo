@@ -25,14 +25,16 @@ latest_posts:
   scrollable: true # adds a vertical scroll bar if there are more than 3 new posts items
   limit: 2 # show the two most recent posts
 ---
+
 I am a Postdoctoral Researcher in Robotics and Artificial Intelligence, with a particular interest in developing intelligent systems that can perceive, reason about, and physically interact with the world.
 
 My research focuses on robot perception and manipulation, with an emphasis on visuo-tactile sensing and multimodal learning. I am also interested in generative models and their application to robotics, particularly for learning complex representations of objects, interactions, and physical environments.
 
-My work combines modern learning-based approaches with classical control methods. More broadly, my goal is to develop robotic systems that can understand physical interactions and operate reliably in complex, contact-rich environments. Recently, I have been focusing on the development of tactile and haptic systems, as well as tactile signal generation from human videos.
+My work combines modern learning-based approaches with classical control methods. More broadly, my goal is to develop robotic systems that can understand physical interactions and operate reliably in complex, contact-rich environments. Recently, I have also been focusing on the development of tactile and haptic systems, as well as tactile signal generation from human videos.
 
 Alongside my research, I am also interested in supporting the robotics community and creating opportunities for early-career researchers to share their work and exchange ideas.
 
 ## Latest publication
+
 - **[Physically Grounded 3D Generative Reconstruction under Hand Occlusion using Proprioception and Multi-Contact Touch]({{ "/publications/" | relative_url }})** — Oral ECCV 2026.
 - See the full list of publications, abstracts, BibTeX citations, and links on the [publications page]({{ "/publications/" | relative_url }}).
