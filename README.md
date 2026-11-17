@@ -40,12 +40,14 @@ The Docker development server is available at
 ## Mirroring LinkedIn posts
 
 LinkedIn activity is mirrored on the blog as short entries that link back to the
-original post. To add one, open the
+original post, and as a line in the news section of the about page. To add one,
+open the
 [mirror workflow](https://github.com/gabrielecaddeo/gabrielecaddeo/actions/workflows/mirror-linkedin-post.yml),
 click **Run workflow**, and paste the post's URL together with a title, a
-one-sentence description, and any extra tags. The entry is committed to `_posts/`
-and the site is redeployed automatically. This also works from the GitHub mobile
-app, so a post can be mirrored right after publishing it.
+one-sentence description, and any extra tags. The news line uses the title
+unless the optional news text is filled in. The entries are committed to
+`_posts/` and `_news/` and the site is redeployed automatically. This also works
+from the GitHub mobile app, so a post can be mirrored right after publishing it.
 
 The same entry can be created locally:
 

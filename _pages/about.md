@@ -21,7 +21,7 @@ announcements:
   limit: 5 # leave blank to include all the news in the `_news` folder
 
 latest_posts:
-  enabled: true
+  enabled: false # mirrored LinkedIn posts already appear under news (see bin/new_linkedin_post.py)
   scrollable: true # adds a vertical scroll bar if there are more than 3 new posts items
   limit: 2 # show the two most recent posts
 ---

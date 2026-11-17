@@ -2,7 +2,8 @@ name: Mirror a LinkedIn post to the blog
 
 # Paste the URL of one of your LinkedIn posts (Actions tab -> this workflow ->
 # "Run workflow", or the GitHub mobile app) and it is added to _posts/ as a blog
-# entry that redirects to the original post, then the site is redeployed.
+# entry that redirects to the original post and to _news/ as a line in the news
+# section of the about page, then the site is redeployed.
 
 on:
   workflow_dispatch:
@@ -17,6 +18,10 @@ on:
         type: string
       description:
         description: "One-sentence summary shown under the title in the blog list"
+        required: false
+        type: string
+      news:
+        description: "Text of the news line on the about page (default: the title)"
         required: false
         type: string
       tags:
@@ -52,47 +57,57 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Create the post
+      - name: Create the post and news item
         id: create
         env:
           POST_URL: ${{ inputs.url }}
           POST_TITLE: ${{ inputs.title }}
           POST_DESCRIPTION: ${{ inputs.description }}
+          POST_NEWS: ${{ inputs.news }}
           POST_TAGS: ${{ inputs.tags }}
           POST_DATE: ${{ inputs.date }}
           POST_BODY: ${{ inputs.body }}
         run: |
-          path=$(python bin/new_linkedin_post.py \
+          paths=$(python bin/new_linkedin_post.py \
             --url "$POST_URL" \
             --title "$POST_TITLE" \
             --description "$POST_DESCRIPTION" \
+            --news-text "$POST_NEWS" \
             --tags "$POST_TAGS" \
             --date "$POST_DATE" \
             --body "$POST_BODY")
-          echo "path=$path" >> $GITHUB_OUTPUT
+          # one path per line from the script; slugified names contain no spaces
+          echo "paths=$(echo $paths)" >> $GITHUB_OUTPUT
 
-      - name: Format the post with prettier
-        run: npx --yes prettier@3 --no-config --print-width 150 --write "${{ steps.create.outputs.path }}"
+      - name: Format the new files with prettier
+        env:
+          PATHS: ${{ steps.create.outputs.paths }}
+        run: npx --yes prettier@3 --no-config --print-width 150 --write $PATHS
 
-      - name: Show the post in the run summary
+      - name: Show the new files in the run summary
+        env:
+          PATHS: ${{ steps.create.outputs.paths }}
         run: |
           {
             echo "### Mirrored LinkedIn post"
-            echo ""
-            echo "\`${{ steps.create.outputs.path }}\`"
-            echo ""
-            echo '```markdown'
-            cat "${{ steps.create.outputs.path }}"
-            echo '```'
+            for path in $PATHS; do
+              echo ""
+              echo "\`${path#"$GITHUB_WORKSPACE"/}\`"
+              echo ""
+              echo '```markdown'
+              cat "$path"
+              echo '```'
+            done
           } >> $GITHUB_STEP_SUMMARY
 
       - name: Commit and push
         env:
+          PATHS: ${{ steps.create.outputs.paths }}
           POST_TITLE: ${{ inputs.title }}
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add "${{ steps.create.outputs.path }}"
+          git add $PATHS
           git commit -m "Mirror LinkedIn post: $POST_TITLE"
           git push
 

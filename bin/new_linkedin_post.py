@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Mirror a LinkedIn post as a stub entry in _posts/.
+"""Mirror a LinkedIn post as a stub entry in _posts/ and a line in _news/.
 
 Creates a post that carries the title, description and tags on this site while
 `redirect:` sends readers to the original LinkedIn activity, matching the style
-of the existing external-post entries.
+of the existing external-post entries. It also adds an inline news item linking
+to the post, so it shows up in the news section of the about page.
 
 Usage:
     python bin/new_linkedin_post.py \
@@ -12,7 +13,8 @@ Usage:
         --description "One-sentence summary shown in the blog list." \
         --tags "eccv-2026, robotics"
 
-Prints the path of the created file to stdout; progress messages go to stderr.
+Prints the path of each created file to stdout, one per line; progress messages
+go to stderr.
 """
 
 import argparse
@@ -24,8 +26,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_POSTS_DIR = REPO_ROOT / "_posts"
+DEFAULT_NEWS_DIR = REPO_ROOT / "_news"
 DEFAULT_TIMEZONE = "Europe/Rome"
 DEFAULT_BODY = "Read the full post on LinkedIn."
+NEWS_LINK_TEXT = "Read the post on LinkedIn"
 CATEGORIES = ["external-posts"]
 BASE_TAG = "linkedin"
 MAX_SLUG_WORDS = 12
@@ -71,10 +75,10 @@ def activity_id(url):
     return match.group(1) if match else None
 
 
-def find_existing(posts_dir, url):
-    """Return the post already mirroring this LinkedIn activity, if any."""
+def find_existing(directory, url):
+    """Return the post or news item in `directory` already linking to this LinkedIn activity, if any."""
     identifier = activity_id(url)
-    for path in sorted(posts_dir.glob("*.md")):
+    for path in sorted(directory.glob("*.md")):
         text = path.read_text(encoding="utf-8")
         if url in text or (identifier and identifier in text):
             return path
@@ -141,8 +145,35 @@ def render(title, date, description, url, tags, body):
     return "\n".join(front_matter) + "\n\n" + body.strip() + "\n"
 
 
+def next_news_path(news_dir):
+    """Next free announcement_<n>.md, continuing the numbering of the existing news items."""
+    numbers = [int(match.group(1)) for path in news_dir.glob("*.md") if (match := re.fullmatch(r"announcement_(\d+)\.md", path.name))]
+    return news_dir / f"announcement_{max(numbers, default=0) + 1}.md"
+
+
+def render_news(date, text, url):
+    """Inline news item: the text followed by a link to the LinkedIn post."""
+    text = " ".join(text.split())
+    if not text.endswith((".", "!", "?")):
+        text += "."
+    front_matter = [
+        "---",
+        "layout: post",
+        f"date: {date.strftime('%Y-%m-%d %H:%M:%S %z')}",
+        "inline: true",
+        "related_posts: false",
+        "---",
+    ]
+    return "\n".join(front_matter) + "\n\n" + f"{text} [{NEWS_LINK_TEXT}]({url}).\n"
+
+
+def created(path):
+    log(f"created {path.relative_to(REPO_ROOT) if path.is_relative_to(REPO_ROOT) else path}")
+    print(path)
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Mirror a LinkedIn post as a stub post in _posts/.")
+    parser = argparse.ArgumentParser(description="Mirror a LinkedIn post as a stub post in _posts/ and a news item in _news/.")
     parser.add_argument("--url", required=True, help="URL of the LinkedIn post")
     parser.add_argument("--title", required=True, help="Title shown on the blog")
     parser.add_argument("--description", default="", help="One-sentence summary shown in the blog list")
@@ -151,12 +182,18 @@ def main():
     parser.add_argument("--body", default=DEFAULT_BODY, help="Body text of the stub post")
     parser.add_argument("--timezone", default=DEFAULT_TIMEZONE, help=f"IANA timezone for the post date (default: {DEFAULT_TIMEZONE})")
     parser.add_argument("--posts-dir", default=str(DEFAULT_POSTS_DIR), help="Directory to write the post into")
+    parser.add_argument("--news-text", default="", help="Text of the news item on the about page (default: the title)")
+    parser.add_argument("--news-dir", default=str(DEFAULT_NEWS_DIR), help="Directory to write the news item into")
+    parser.add_argument("--no-news", action="store_true", help="Only create the post, without a news item")
     parser.add_argument("--force", action="store_true", help="Write even if this LinkedIn post is already mirrored")
     args = parser.parse_args()
 
     posts_dir = Path(args.posts_dir)
     if not posts_dir.is_dir():
         fail(f"posts directory not found: {posts_dir}")
+    news_dir = Path(args.news_dir)
+    if not args.no_news and not news_dir.is_dir():
+        fail(f"news directory not found: {news_dir}")
 
     url = normalize_url(args.url)
     title = " ".join(args.title.split())
@@ -178,8 +215,17 @@ def main():
         log("warning: no --description given; the blog list will show an entry without a summary")
 
     path.write_text(render(title, date, description, url, parse_tags(args.tags), args.body), encoding="utf-8")
-    log(f"created {path.relative_to(REPO_ROOT) if path.is_relative_to(REPO_ROOT) else path}")
-    print(path)
+    created(path)
+
+    if args.no_news:
+        return
+    existing_news = find_existing(news_dir, url)
+    if existing_news and not args.force:
+        log(f"warning: {existing_news} already links to this LinkedIn post; not adding another news item")
+        return
+    news_path = next_news_path(news_dir)
+    news_path.write_text(render_news(date, args.news_text.strip() or title, url), encoding="utf-8")
+    created(news_path)
 
 
 if __name__ == "__main__":
